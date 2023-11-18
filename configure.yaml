@@ -13,11 +13,17 @@
         upgrade: 'yes'
         force_apt_get: yes
 
+
+    - name: Gather hostname
+      shell: hostname
+      register: hostname
+      
     - name: Gather current username
       user:
         name: "{{ ansible_facts['env']['SUDO_USER'] }}"
       register: username
       changed_when: False
+
 
     - name: Update sudo config
       lineinfile:
@@ -72,6 +78,7 @@
         state: absent
         autoremove: yes
         force_apt_get: yes
+
 
     - name: Check for docker gpg key
       stat:
@@ -147,6 +154,7 @@
         state: directory
         mode: '0755'
 
+
     - name: Enable separate cron logging
       lineinfile:
         path: /etc/rsyslog.d/50-default.conf
@@ -157,6 +165,7 @@
     - name: Reload rsyslog daemon configurations
       shell: systemctl restart rsyslog.service
       when: cron_log_config.changed
+
 
     - name: Link bash envs file (user)
       become: yes
@@ -182,17 +191,12 @@
         regexp: '^PS1='
         line: 'PS1="\n\[\033[00;97m\][\[\033[0;32m\]\u@\h\[\033[00;97m\]:\[\033[1;33m\]\w\[\033[00;97m\]]\[\033[0m\]\n\$ "'
 
+
     - name: Link bash envs file (root)
       lineinfile:
         path: ~/.bashrc
         regexp: '^if [ -f ~/.bash_envs ]; then . ~/.bash_envs; fi$'
         line: 'if [ -f ~/.bash_envs ]; then . ~/.bash_envs; fi'
-
-    - name: Create (if necessary) '~/.bash_aliases' (root)
-      file:
-        path: ~/.bash_aliases
-        state: touch
-        mode: '0644'
 
     - name: Create (if necessary) '~/.bash_envs' (root)
       file:
@@ -205,6 +209,7 @@
         path: ~/.bash_envs
         regexp: '^PS1='
         line: 'PS1="\n\[\033[00;97m\][\[\033[0;32m\]\u@\h\[\033[00;97m\]:\[\033[1;33m\]\w\[\033[00;97m\]]\[\033[0m\]\n\$ "'
+
 
     - name: Create app interface systemd unit file
       copy:
@@ -236,6 +241,7 @@
       shell: systemctl start appif
       when: appif_service.changed
 
+
     - name: Check for hashicorp gpg key
       stat:
         path: /usr/share/keyrings/hashicorp-archive-keyring.gpg
@@ -257,13 +263,14 @@
         cmd: echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list > /dev/null
       when: not hashicorp_src_list.stat.exists
 
+
     - name: Add glusterfs Repository
       apt_repository:
         repo: ppa:gluster/glusterfs-11
         state: present
 
 
-    - name: Configure networking for 'node1'
+    - name: Configure networking for node
       copy:
         dest: /etc/netplan/00-installer-config.yaml
         content: |
@@ -277,76 +284,9 @@
                 nameservers:
                   addresses: [10.0.0.1]
             version: 2
-      when: hostname.stdout == "node1"
+      when: hostname.stdout == "node0"
       register: network_config
 
-    - name: Configure networking for 'node2'
-      copy:
-        dest: /etc/netplan/00-installer-config.yaml
-        content: |
-          network:
-            ethernets:
-              {{ ansible_default_ipv4.interface }}:
-                dhcp4: no
-                dhcp6: no
-                addresses: [10.0.1.102/22]
-                gateway4: 10.0.0.1
-                nameservers:
-                  addresses: [10.0.0.1]
-            version: 2
-      when: hostname.stdout == "node2"
-      register: network_config
-
-    - name: Configure networking for 'node3'
-      copy:
-        dest: /etc/netplan/00-installer-config.yaml
-        content: |
-          network:
-            ethernets:
-              {{ ansible_default_ipv4.interface }}:
-                dhcp4: no
-                dhcp6: no
-                addresses: [10.0.1.103/22]
-                gateway4: 10.0.0.1
-                nameservers:
-                  addresses: [10.0.0.1]
-            version: 2
-      when: hostname.stdout == "node3"
-      register: network_config
-
-    - name: Configure networking for 'node4'
-      copy:
-        dest: /etc/netplan/00-installer-config.yaml
-        content: |
-          network:
-            ethernets:
-              {{ ansible_default_ipv4.interface }}:
-                dhcp4: no
-                dhcp6: no
-                addresses: [10.0.1.104/22]
-                gateway4: 10.0.0.1
-                nameservers:
-                  addresses: [10.0.0.1]
-            version: 2
-      when: hostname.stdout == "node4"
-      register: network_config
-
-    - name: Configure networking for 'node5'
-      copy:
-        dest: /etc/netplan/00-installer-config.yaml
-        content: |
-          network:
-            ethernets:
-              {{ ansible_default_ipv4.interface }}:
-                dhcp4: no
-                dhcp6: no
-                addresses: [10.0.1.105/22]
-                gateway4: 10.0.0.1
-                nameservers:
-                  addresses: [10.0.0.1]
-            version: 2
-      when: hostname.stdout == "node5"
-      register: network_config
 
     - name: Apply new network config
       shell: netplan apply
