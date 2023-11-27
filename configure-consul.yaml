@@ -1,4 +1,4 @@
- name: Configure Consul
+- name: Configure Consul
   hosts: localhost
   connection: local
   gather_facts: true
@@ -15,9 +15,6 @@
       register: ip_address
       args:
         warn: false
-
-    - debug:
-        msg: "{{ ip_address }}"
 
     - name: Install Consul
       apt:
