@@ -270,6 +270,18 @@
         state: present
 
 
+    - name: Disabled local resolver
+      lineinfile:
+        path: /etc/systemd/resolved.conf
+        regexp: 'DNSStubListener='
+        line: 'DNSStubListener=no'
+
+    - name: Restart resolved service to to apply new config
+      shell: systemctl restart systemd-resolved
+      args:
+        warn: false
+
+
     - name: Configure networking for node
       copy:
         dest: /etc/netplan/00-installer-config.yaml
