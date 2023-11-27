@@ -5,7 +5,7 @@
   tasks:
     - name: Set Parameters
       set_fact:
-        network_interface: 'enp0s3'
+        network_interface: 'eno1'
         datacenter: 'dc1'
         cluster_ips: '["10.0.3.101","10.0.3.102","10.0.3.103"]'
         encryption_key: 'AyXuIOdn351tptMQN1nZHMlIdMgBm32P3Ha7dbuOk3I='
