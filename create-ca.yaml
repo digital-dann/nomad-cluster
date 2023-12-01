@@ -23,22 +23,22 @@
         dest: ./renew-certs.sh
         content: |
           #!/bin/bash
-          if [[ ! -f ./root.key ]]; then
+          if [[ ! -f ./certs/root.key ]]; then
             openssl genrsa -out ./certs/root.key 4096
           fi
-          if [[ ! -f ./root.crt ]]; then
+          if [[ ! -f ./certs/root.crt ]]; then
             export SERIAL_ROOT=0x$(date +%s%N | openssl dgst -sha256 -r | cut -c1-40)
             openssl req -config root.conf -key ./certs/root.key -new -x509 -out ./certs/root.crt -days 18263 -set_serial $SERIAL_ROOT
           fi
-          if [[ ! -f ./int.key ]]; then
+          if [[ ! -f ./certs/int.key ]]; then
             openssl genrsa -out ./certs/int.key 4096
           fi
-          if [[ ! -f ./int.crt ]]; then
+          if [[ ! -f ./certs/int.crt ]]; then
             export SERIAL_INT=0x$(date +%s%N | openssl dgst -sha256 -r | cut -c1-40)
             openssl req -config int.conf -new -sha256 -key ./certs/int.key -out int.csr
             openssl x509 -req -days 10958 -in int.csr -CA ./certs/root.crt -CAkey ./certs/root.key -out ./certs/int.crt -sha256 -set_serial $SERIAL_INT -extfile int.ext
           fi
-          if [[ ! -f ./wildcard.key ]]; then
+          if [[ ! -f ./certs/wildcard.key ]]; then
             openssl genrsa -out ./certs/wildcard.key 2048
           fi
           export SERIAL_WILDCARD=0x$(date +%s%N | openssl dgst -sha256 -r | cut -c1-40)
