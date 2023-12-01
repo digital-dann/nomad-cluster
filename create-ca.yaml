@@ -1,0 +1,113 @@
+- name: Create Certificate Authority
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  tasks:
+    - name: Set Parameters
+      set_fact:
+        external_domain: 'domain.com'
+        internal_domain: 'home.domain.com'
+        ip_addresses:
+          - '10.0.3.101'
+          - '10.0.3.102'
+          - '10.0.3.103'
+
+    - name: Generate Script for Root CA
+      copy:
+        dest: ./ca-create.sh
+        content: |
+          #!/bin/bash
+          if [[ ! -f ./root.key ]]; then
+            openssl genrsa -out root.key 4096
+          fi
+          if [[! -f ./root.crt ]]; then
+            export SERIAL_ROOT=0x$(date +%s%N | openssl dgst -sha256 -r | cut -c1-40)
+            openssl req -config root.conf -key root.key -new -x509 -out root.crt -days 18263 -set_serial $SERIAL_ROOT
+          fi
+          if [[ ! -f ./int.key ]]; then
+            openssl genrsa -out int.key 4096
+          fi
+          if [[! -f ./int.crt ]]; then
+            export SERIAL_INT=0x$(date +%s%N | openssl dgst -sha256 -r | cut -c1-40)
+            openssl req -config int.conf -new -sha256 -key int.key -out int.csr
+            openssl x509 -req -days 10958 -in int.csr -CA root.crt -CAkey root.key -out int.crt -sha256 -set_serial $SERIAL_INT -extfile int.ext
+          fi
+          if [[ ! -f ./wildcard.key ]]; then
+            openssl genrsa -out wildcard.key 2048
+          fi
+          openssl req -key wildcard.key -new -sha256 -out wildcard.csr -subj "/CN=Wildcard"
+          export SERIAL_WILDCARD=0x$(date +%s%N | openssl dgst -sha256 -r | cut -c1-40)
+          openssl x509 -req -days 7310 -in wildcard.csr -CA ./int.crt -CAkey ./int.key -out wildcard.crt -sha256 -set_serial $SERIAL_WILDCARD -extfile wildcard.ext
+        mode: '0700'
+
+    - name: Generate root.conf
+      copy:
+        dest: ./root.conf
+        content: |
+          [ req ]
+          prompt                  = no
+          encrypt_key             = no
+          default_md              = sha256
+          distinguished_name      = dn
+          x509_extensions         = ext
+
+          [ dn ]
+          commonName              = Private Root CA
+
+          [ ext ]
+          basicConstraints        = critical, CA:TRUE, pathlen:1
+          keyUsage                = critical, keyCertSign, cRLSign
+          subjectKeyIdentifier    = hash
+          authorityKeyIdentifier  = keyid:always, issuer
+
+    - name: Generate int.conf
+      copy:
+        dest: ./int.conf
+        content: |
+          [ req ]
+          prompt                  = no
+          encrypt_key             = no
+          default_md              = sha256
+          distinguished_name      = dn
+          x509_extensions         = ext
+
+          [ dn ]
+          commonName              = Private Intermediate CA
+
+          [ ext ]
+          basicConstraints        = critical, CA:TRUE, pathlen:0
+          keyUsage                = critical, keyCertSign, cRLSign
+          subjectKeyIdentifier    = hash
+          authorityKeyIdentifier  = keyid:always, issuer
+
+    - name: Generate int.ext
+      copy:
+        dest: ./int.ext
+        content: |
+          basicConstraints        = critical, CA:TRUE, pathlen:0
+          keyUsage                = critical, keyCertSign, cRLSign
+          subjectKeyIdentifier    = hash
+          authorityKeyIdentifier  = keyid:always, issuer
+
+    - name: Generate wildcard.ext
+      copy:
+        dest: ./wildcard.ext
+        content: |
+          keyUsage                = critical, nonRepudiation, digitalSignature, keyEncipherment, keyAgreement
+          extendedKeyUsage        = critical, serverAuth
+          subjectAltName          = DNS:*.service.consul
+
+    - name: Create SAN value
+      set_fact:
+        san_list: "DNS:*.service.consul,DNS:*.{{ internal_domain }},IP:{{ ip_addresses | join(',IP:') }}"
+
+    - name: update Wildcard extension
+      lineinfile:
+        path: ./wildcard.ext
+        regexp: 'subjectAltName'
+        line: "subjectAltName          = {{ san_list }}"
+
+    - name: Create Certificates
+      shell: bash ca-create.sh
+      args:
+        warn: false
