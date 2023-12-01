@@ -44,7 +44,7 @@
           export SERIAL_WILDCARD=0x$(date +%s%N | openssl dgst -sha256 -r | cut -c1-40)
           openssl req -key ./certs/wildcard.key -new -sha256 -out wildcard.csr -subj "/CN=Wildcard"
           openssl x509 -req -days 398 -in wildcard.csr -CA ./certs/int.crt -CAkey ./certs/int.key -out ./certs/wildcard.crt -sha256 -set_serial $SERIAL_WILDCARD -extfile wildcard.ext
-          cat ./certs/wildcard.crt >> ./certs/wildcard.pem
+          cat ./certs/wildcard.crt > ./certs/wildcard.pem
           cat ./certs/int.crt >> ./certs/wildcard.pem
           cat ./certs/root.crt >> ./certs/wildcard.pem
         mode: '0700'
