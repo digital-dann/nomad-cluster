@@ -37,7 +37,10 @@
           fi
           openssl req -key wildcard.key -new -sha256 -out wildcard.csr -subj "/CN=Wildcard"
           export SERIAL_WILDCARD=0x$(date +%s%N | openssl dgst -sha256 -r | cut -c1-40)
-          openssl x509 -req -days 7310 -in wildcard.csr -CA ./int.crt -CAkey ./int.key -out wildcard.crt -sha256 -set_serial $SERIAL_WILDCARD -extfile wildcard.ext
+          openssl x509 -req -days 398 -in wildcard.csr -CA ./int.crt -CAkey ./int.key -out wildcard.crt -sha256 -set_serial $SERIAL_WILDCARD -extfile wildcard.ext
+          cat ./wildcard.crt >> wildcard.pem
+          cat ./int.crt >> wildcard.pem
+          cat ./root.crt >> wildcard.pem
         mode: '0700'
 
     - name: Generate root.conf
