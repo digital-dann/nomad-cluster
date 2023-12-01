@@ -20,7 +20,7 @@
 
     - name: Generate Script for Root CA
       copy:
-        dest: ./ca-create.sh
+        dest: ./renew-certs.sh
         content: |
           #!/bin/bash
           if [[ ! -f ./root.key ]]; then
