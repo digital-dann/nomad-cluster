@@ -117,6 +117,6 @@
         line: "subjectAltName          = {{ san_list }}"
 
     - name: Create Certificates
-      shell: bash ca-create.sh
+      shell: bash renew-certs.sh
       args:
         warn: false
