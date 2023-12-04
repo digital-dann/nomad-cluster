@@ -5,8 +5,7 @@
   tasks:
     - name: Set Parameters
       set_fact:
-        external_domain: 'domain.com'
-        internal_domain: 'home.domain.com'
+        private_domain: 'home.digitaldann.net'
         ip_addresses:
           - '10.0.3.101'
           - '10.0.3.102'
@@ -108,7 +107,7 @@
 
     - name: Create SAN value
       set_fact:
-        san_list: "DNS:*.service.consul,DNS:*.{{ internal_domain }},IP:{{ ip_addresses | join(',IP:') }}"
+        san_list: "DNS:*.service.consul,DNS:*.{{ private_domain }},IP:{{ ip_addresses | join(',IP:') }}"
 
     - name: update Wildcard extension
       lineinfile:
