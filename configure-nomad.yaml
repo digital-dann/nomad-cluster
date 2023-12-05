@@ -1,0 +1,67 @@
+- name: Configure Nomad
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  tasks:
+    - name: Set Parameters
+      set_fact:
+        datacenter: 'dc1'
+        docker_cleanup: 'true'
+        cluster_ips:
+          - '10.0.3.101'
+          - '10.0.3.102'
+          - '10.0.3.103'
+
+    - name: Install Nomad
+      apt:
+        name:
+          - nomad
+        state: present
+        force_apt_get: yes
+
+    - name: Write Nomad config file
+      copy:
+        dest: /etc/nomad.d/nomad.hcl
+        content: |
+          data_dir  = "/opt/nomad/data"
+          bind_addr = "0.0.0.0"
+          datacenter = "{{ datacenter }}"
+          server {
+            enabled = true
+            bootstrap_expect = 3
+            server_join {
+              retry_join = []
+            }
+          }
+          client {
+            enabled = true
+            servers = ["127.0.0.1"]
+            options {
+              docker.cleanup.image = {{ docker_cleanup }}
+            }
+          }
+          plugin "docker" {
+            config {
+              volumes {
+                enabled = true
+              }
+              allow_caps = ["all"]
+            }
+          }
+        mode: '0644'
+
+    - name: Create retry_join value
+      set_fact:
+        retry_join: "\"{{ cluster_ips | join('\",\"') }}\""
+
+
+    - name: update Nomad config
+      lineinfile:
+        path: /etc/nomad.d/nomad.hcl
+        regexp: 'retry_join'
+        line: "     retry_join = [{{ retry_join }}]"
+
+    - name: Restart Nomad to apply new config
+      shell: systemctl restart nomad.service
+      args:
+        warn: false
