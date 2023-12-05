@@ -7,7 +7,7 @@
       set_fact:
         network_interface: 'eno1'
         datacenter: 'dc1'
-        cluster_ips: 
+        cluster_ips:
           - '10.0.3.101'
           - '10.0.3.102'
           - '10.0.3.103'
@@ -16,7 +16,7 @@
     - name: Create retry_join value
       set_fact:
         retry_join: "\"{{ cluster_ips | join('\",\"') }}\""
-    
+
     - name: Get IP address of host
       shell: "ifconfig {{ network_interface }} | grep 'inet' | grep 'netmask' | grep 'broadcast' | cut -d' ' -f10"
       register: ip_address
