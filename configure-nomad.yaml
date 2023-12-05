@@ -1,7 +1,4 @@
 - name: Configure Nomad
-  cat configure-nomad.yaml 
-
-- name: Configure Nomad
   hosts: localhost
   connection: local
   gather_facts: true
