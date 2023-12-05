@@ -8,20 +8,15 @@
   tasks:
     - name: Set Parameters
       set_fact:
-        datacenter: 'ibold'
+        datacenter: 'dc1'
         cluster_ips:
-          - '172.24.1.1'
-          - '172.24.1.2'
-          - '172.24.1.3'
-          - '172.24.1.4'
-          - '172.24.1.5'
+          - '10.0.3.101'
+          - '10.0.3.102'
+          - '10.0.3.103'
 
-    - name: Install Nomad
-      apt:
-        name:
-          - nomad
-        state: present
-        force_apt_get: yes
+    - name: Create retry_join value
+      set_fact:
+        retry_join: "\"{{ cluster_ips | join('\",\"') }}\""
 
     - name: Write Nomad config file
       copy:
@@ -34,7 +29,7 @@
             enabled = true
             bootstrap_expect = 3
             server_join {
-              retry_join = []
+              retry_join = [{{ retry_join }}]
             }
           }
           client {
@@ -53,17 +48,6 @@
             }
           }
         mode: '0644'
-
-    - name: Create retry_join value
-      set_fact:
-        retry_join: "\"{{ cluster_ips | join('\",\"') }}\""
-
-
-    - name: update Nomad config
-      lineinfile:
-        path: /etc/nomad.d/nomad.hcl
-        regexp: 'retry_join'
-        line: "     retry_join = [{{ retry_join }}]"
 
     - name: Restart Nomad to apply new config
       shell: systemctl restart nomad.service
