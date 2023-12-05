@@ -16,13 +16,6 @@
       set_fact:
         retry_join: "\"{{ cluster_ips | join('\",\"') }}\""
 
-    - name: Install Consul
-      apt:
-        name:
-          - consul
-        state: present
-        force_apt_get: yes
-
     - name: Write Consul config file
       copy:
         dest: /etc/consul.d/consul.hcl
