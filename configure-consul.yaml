@@ -7,9 +7,16 @@
       set_fact:
         network_interface: 'eno1'
         datacenter: 'dc1'
-        cluster_ips: '["10.0.3.101","10.0.3.102","10.0.3.103"]'
+        cluster_ips: 
+          - '10.0.3.101'
+          - '10.0.3.102'
+          - '10.0.3.103'
         encryption_key: 'AyXuIOdn351tptMQN1nZHMlIdMgBm32P3Ha7dbuOk3I='
 
+    - name: Create retry_join value
+      set_fact:
+        retry_join: "\"{{ cluster_ips | join('\",\"') }}\""
+    
     - name: Get IP address of host
       shell: "ifconfig {{ network_interface }} | grep 'inet' | grep 'netmask' | grep 'broadcast' | cut -d' ' -f10"
       register: ip_address
@@ -34,18 +41,12 @@
           client_addr = "127.0.0.1 {{ '{{' }} GetInterfaceIP  \"{{ network_interface }}\" {{ '}}' }} {{ '{{' }} GetInterfaceIP  \"docker0\" {{ '}}' }}"
           advertise_addr = "{{ '{{' }} GetInterfaceIP \"{{ network_interface }}\" {{ '}}' }}"
           encrypt = "{{ encryption_key }}"
-          retry_join = {{ cluster_ips }}
+          retry_join = {{ retry_join }}
           server = true
           ui_config {
             enabled = true
           }
         mode: '0644'
-
-    - name: Replace own IP with loopback
-      replace:
-        path: /etc/consul.d/consul.hcl
-        regexp: '({{ ip_address.stdout }})'
-        replace: '127.0.0.1'
 
     - name: Restart Consul to apply new config
       shell: systemctl restart consul
