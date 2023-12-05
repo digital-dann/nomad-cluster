@@ -5,7 +5,6 @@
   tasks:
     - name: Set Parameters
       set_fact:
-        network_interface: 'eno1'
         datacenter: 'dc1'
         cluster_ips:
           - '10.0.3.101'
@@ -16,12 +15,6 @@
     - name: Create retry_join value
       set_fact:
         retry_join: "\"{{ cluster_ips | join('\",\"') }}\""
-
-    - name: Get IP address of host
-      shell: "ifconfig {{ network_interface }} | grep 'inet' | grep 'netmask' | grep 'broadcast' | cut -d' ' -f10"
-      register: ip_address
-      args:
-        warn: false
 
     - name: Install Consul
       apt:
@@ -38,10 +31,10 @@
           data_dir = "/opt/consul"
           bootstrap_expect = 3
           bind_addr = "0.0.0.0"
-          client_addr = "127.0.0.1 {{ '{{' }} GetInterfaceIP  \"{{ network_interface }}\" {{ '}}' }} {{ '{{' }} GetInterfaceIP  \"docker0\" {{ '}}' }}"
-          advertise_addr = "{{ '{{' }} GetInterfaceIP \"{{ network_interface }}\" {{ '}}' }}"
+          client_addr = "127.0.0.1 {{ '{{' }} GetInterfaceIP  \"{{ ansible_default_ipv4.interface }}\" {{ '}}' }} {{ '{{' }} GetInterfaceIP  \"docker0\" {{ '}}' }}"
+          advertise_addr = "{{ '{{' }} GetInterfaceIP \"{{ ansible_default_ipv4.interface }}\" {{ '}}' }}"
           encrypt = "{{ encryption_key }}"
-          retry_join = {{ retry_join }}
+          retry_join = [{{ retry_join }}]
           server = true
           ui_config {
             enabled = true
