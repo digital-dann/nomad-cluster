@@ -1,0 +1,22 @@
+vrrp_script unbound {
+  script       "/bin/bash /etc/keepalived/unbound.sh"
+  interval 5   # check every 5 seconds
+  fall 2       # require 2 failures for KO
+  rise 2       # require 2 successes for OK
+  weight 50
+}
+
+vrrp_instance unbound {
+  interface enp0s3
+  virtual_router_id 201
+  priority 100
+  advert_int 1
+
+  track_script {
+    unbound
+  }
+
+  virtual_ipaddress {
+    10.0.3.201/24
+  }
+}
