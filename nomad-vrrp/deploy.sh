@@ -8,8 +8,11 @@ arrNodes=(
   "node3,10.0.3.103"
 )
 
-for n in ;
-do
-  hash=beadba836315747fc95ae304452514b72fe122a6e345974638d70c4e8ebace6a
-  touch ./nodes/
+if [ ! -d ./nodes.d ]; then
+  mkdir ./nodes.d
+fi
+
+for n in arrNodes; do
+  HASH=$(echo "${n},${SALT}" | sha256sum | cut -f1 -d' ')
+  touch ./nodes.d/${HASH}
 done
