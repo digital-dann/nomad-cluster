@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INTERFACE="enp0s3"
+INTERFACE="eno1"
 
 IP_ADDRESS=$(ifconfig $INTERFACE | grep 'inet' | grep 'netmask' | grep 'broadcast' | cut -d' ' -f10)
 RESULT=$(dig -t TXT health.check @${IP_ADDRESS} | grep abcdefghijklmnopqrstuvwxyz | wc -l)
