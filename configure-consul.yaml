@@ -24,7 +24,7 @@
           data_dir = "/opt/consul"
           bootstrap_expect = 3
           bind_addr = "0.0.0.0"
-          client_addr = "127.0.0.1 {{ '{{' }} GetInterfaceIP  \"{{ ansible_default_ipv4.interface }}\" {{ '}}' }} {{ '{{' }} GetInterfaceIP  \"docker0\" {{ '}}' }}"
+          client_addr = "127.0.0.1 169.254.254.254 {{ '{{' }} GetInterfaceIP  \"{{ ansible_default_ipv4.interface }}\" {{ '}}' }} {{ '{{' }} GetInterfaceIP  \"docker0\" {{ '}}' }}"
           advertise_addr = "{{ '{{' }} GetInterfaceIP \"{{ ansible_default_ipv4.interface }}\" {{ '}}' }}"
           encrypt = "{{ encryption_key }}"
           retry_join = [{{ retry_join }}]
