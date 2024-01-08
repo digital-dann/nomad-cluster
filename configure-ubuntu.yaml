@@ -79,7 +79,7 @@
           - liblxc-common
           - popularity-contest
           - ubuntu-standard
-          - ubuntu-adcantage-tools
+          - ubuntu-advantage-tools
           - landscape-common
         state: absent
         autoremove: yes
