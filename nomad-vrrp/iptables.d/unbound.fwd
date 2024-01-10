@@ -1,4 +1,0 @@
-VRRP_ADDRESS=10.0.3.201
-VRRP_PORT=53
-/usr/sbin/iptables -t nat -A PREROUTING -d ${VRRP_ADDRESS}/32 -p udp -m udp --dport ${VRRP_PORT} -j DNAT --to-destination ${IP_ADDRESS}:${VRRP_PORT} -m comment --comment vrrp
-/usr/sbin/iptables -t nat -A POSTROUTING -d ${IP_ADDRESS}/32 -p udp -m udp --dport ${VRRP_PORT} -j SNAT --to-source ${VRRP_ADDRESS} -m comment --comment vrrp
