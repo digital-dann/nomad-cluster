@@ -11,7 +11,7 @@ INTERFACE="eno1"
 HOSTNAME=$(hostname)
 IP_ADDRESS=$(/usr/sbin/ifconfig ${INTERFACE} | /usr/bin/grep 'inet' | /usr/bin/grep 'netmask' | /usr/bin/grep 'broadcast' | /usr/bin/cut -d' ' -f10)
 SALT="tnbctvavpeowpenvrxatdnjvotamqbkq"
-HASH=$(echo "${HOSTNAME},${IP_ADDRESS},${SALT}" | sha256sum | cut -f1 -d' '
+HASH=$(echo "${HOSTNAME},${IP_ADDRESS},${SALT}" | sha256sum | cut -f1 -d' ')
 
 
 while :
