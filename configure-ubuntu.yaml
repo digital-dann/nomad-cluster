@@ -293,15 +293,20 @@
         dest: /etc/netplan/00-installer-config.yaml
         content: |
           network:
+            version: 2
+            renderer: networkd            
             ethernets:
               {{ ansible_default_ipv4.interface }}:
                 dhcp4: no
                 dhcp6: no
-                addresses: [{{ cluster_ip }}]
-                gateway4: {{ cluster_gateway }}
+                addresses:
+                  - {{ cluster_ip }}
+                routes:
+                  - to: default
+                    via: {{ cluster_gateway }}
                 nameservers:
-                  addresses: [{{ dns_server }}]
-            version: 2
+                  addresses:
+                    - {{ dns_server }}
       register: network_config
 
 
