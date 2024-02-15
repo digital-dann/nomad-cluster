@@ -21,7 +21,7 @@ do
       /mnt/vagabond/services/nomad-vrrp/update-vrrp.sh
       echo "Ran Update"
     fi
-    rm /mnt/vagabond/services/nomad-vrrp/nodes/${HASH}
+    rm /mnt/vagabond/services/nomad-vrrp/nodes.d/${HASH}
   fi
   sleep 10
 done
